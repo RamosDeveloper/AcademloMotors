@@ -2,7 +2,6 @@ import { Router } from "express";
 import { UserController } from "./controller";
 import { UserService } from "../services/user.service";
 
-
 export class UserRoutes {
 
     static get routes(): Router {
@@ -11,8 +10,9 @@ export class UserRoutes {
         const userController = new UserController(userService);
 
         router.get("/", userController.findAllUsers);
+        router.get("/:id", userController.findUserById);
 
-        
+        router.post("/", userController.createUser);
 
         return router;
     }

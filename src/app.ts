@@ -1,7 +1,9 @@
+import "reflect-metadata";
 import { Server } from "./presentation/server";
 import { AppRoutes } from "./presentation/routes";
 import { PostgresDatabase } from "./data";
 import { envs } from "./config";
+
 
 async function main () {
     

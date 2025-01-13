@@ -1,4 +1,7 @@
 import { DataSource } from "typeorm";
+import { User } from "./models/user.model";
+import { Repair } from "./models/repair.model";
+
 
 interface IPostgresDatabaseProps {
     host: string;
@@ -19,7 +22,8 @@ export class PostgresDatabase {
             username: options.username,
             password: options.password,
             database: options.database,
-            entities: [],
+            entities: [User, Repair],
+            logging: true,
             synchronize: true,
  //           ssl: {
  //               rejectUnauthorized: false
