@@ -14,6 +14,8 @@ export class UserRoutes {
 
         router.post("/", userController.createUser);
 
+        
+
         return router;
     }
 
