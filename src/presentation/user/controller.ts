@@ -43,4 +43,32 @@ export class UserController {
             });            
         }
     };
+
+    updateUser = async (req: Request, res: Response) => {
+        try {
+            const {id} = req.params;
+            const updateUserResponse = await this._userService.updateUser(id, req.body);
+
+            return res.status(200).json(updateUserResponse);
+        } catch (error) {
+            return res.status(500).json({
+                message: "Internal server error",
+                error
+            });              
+        }
+    };
+
+    deleteUser = async (req: Request, res: Response) => {
+        try {
+            const {id} = req.params;
+            const deleteUserResponse = await this._userService.deleteUser(id);
+
+            return res.status(200).json(deleteUserResponse);            
+        } catch (error) {
+            return res.status(500).json({
+                message: "Internal server error",
+                error
+            });             
+        }
+    };
 }
