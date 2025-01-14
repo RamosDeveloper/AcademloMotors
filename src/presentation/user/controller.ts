@@ -63,7 +63,7 @@ export class UserController {
             const {id} = req.params;
             const deleteUserResponse = await this._userService.deleteUser(id);
 
-            return res.status(200).json(deleteUserResponse);            
+            return res.status(204).json(deleteUserResponse);            
         } catch (error) {
             return res.status(500).json({
                 message: "Internal server error",
