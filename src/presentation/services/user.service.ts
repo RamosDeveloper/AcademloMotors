@@ -1,5 +1,5 @@
 import { User } from "../../data";
-import { CreateUserDTO, UpdateUserDTO } from "../../domain";
+import { CreateUserDTO, CustomError, UpdateUserDTO } from "../../domain";
 
 export class UserService {
     constructor() {}
@@ -8,7 +8,7 @@ export class UserService {
         try {
             return await User.find();
         } catch (error) {
-            throw new Error("Find all users error");
+            throw CustomError.internalServer("Find all users error");
         }
     }
 
@@ -18,7 +18,7 @@ export class UserService {
                 where: { id }
             });
         } catch (error) {
-            throw new Error("Find user by Id error");
+            throw CustomError.internalServer("Find user by Id error");
         }
     }
 
@@ -33,7 +33,7 @@ export class UserService {
         try {
             return await user.save();            
         } catch (error) {
-            throw new Error("Create user error");
+            throw CustomError.internalServer("Create user error");
         }
     }
 
@@ -47,10 +47,10 @@ export class UserService {
 
                 return await user.save();
             } catch (error) {
-                throw new Error("Update user error");
+                throw CustomError.internalServer("Update user error");
             }
         }else {
-            throw new Error(`User [${id}] does not exists`);
+            throw CustomError.notFound(`User [${id}] does not exists`);
         }
     }
 
@@ -63,10 +63,10 @@ export class UserService {
 
                 return await user.save();                
             } catch (error) {
-                throw new Error("Delete user error");
+                throw CustomError.internalServer("Delete user error");
             }
         }else {
-            throw new Error(`User [${id}] does not exists`);
+            throw CustomError.notFound(`User [${id}] does not exists`);
         }
     }
 }

@@ -1,20 +1,26 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
-import { CreateUserDTO, UpdateUserDTO } from "../../domain";
+import { CreateUserDTO, UpdateUserDTO, CustomError } from "../../domain";
 
 export class UserController {
     constructor(private readonly _userService: UserService) {}
+
+    private handleError = (error: unknown, res: Response) => {
+        if (error instanceof CustomError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error 🧨" });
+    };
 
     findAllUsers = async (req: Request, res: Response) => {
         try {
             const users = await this._userService.findAllUsers();
 
             return res.status(200).json(users);            
-        } catch (error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                error
-            });
+        } catch (error: unknown) {
+            return this.handleError(error, res);
         }
     };
 
@@ -24,11 +30,8 @@ export class UserController {
             const user = await this._userService.findUserById(id);
 
             return res.status(200).json(user);
-        } catch (error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                error
-            });            
+        } catch (error: unknown) {
+            return this.handleError(error, res);
         }
     };
 
@@ -41,11 +44,8 @@ export class UserController {
            const createUserResponse = await this._userService.createUser(createUserDto!);
 
            return res.status(201).json(createUserResponse);
-        } catch (error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                error
-            });            
+        } catch (error: unknown) {
+            return this.handleError(error, res);
         }
     };
 
@@ -59,11 +59,8 @@ export class UserController {
             const updateUserResponse = await this._userService.updateUser(id, updateUserDto!);
 
             return res.status(200).json(updateUserResponse);
-        } catch (error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                error
-            });              
+        } catch (error: unknown) {
+            return this.handleError(error, res);
         }
     };
 
@@ -73,11 +70,8 @@ export class UserController {
             const deleteUserResponse = await this._userService.deleteUser(id);
 
             return res.status(204).json(deleteUserResponse);            
-        } catch (error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                error
-            });             
+        } catch (error: unknown) {
+            return this.handleError(error, res);
         }
     };
 }
