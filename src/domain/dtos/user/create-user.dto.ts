@@ -27,6 +27,6 @@ export class CreateUserDTO {
         return [
             undefined,
             new CreateUserDTO(name, email, password, role),
-          ];        
+        ];        
     }
 }

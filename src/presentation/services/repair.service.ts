@@ -1,5 +1,6 @@
 import { User } from "../../data";
 import { Repair } from "../../data";
+import { CreateRepairDTO, CustomError } from "../../domain";
 
 export class RepairService {
     constructor() {}
@@ -12,7 +13,7 @@ export class RepairService {
                 }
             });
         } catch (error) {
-            throw new Error("Find all pending motos for repair error");
+            throw CustomError.internalServer("Find all pending motos for repair error");
         }
     }
 
@@ -22,7 +23,7 @@ export class RepairService {
                 id
             } });
         } catch (error) {
-            throw new Error("Find moto for repair by Id error");
+            throw CustomError.internalServer("Find moto for repair by Id error");
         }
     }
 
@@ -33,11 +34,11 @@ export class RepairService {
                 status: 'pending'
             } });
         } catch (error) {
-            throw new Error("Find pending moto for repair by Id error");
+            throw CustomError.internalServer("Find pending moto for repair by Id error");
         }
     }
 
-    async createRepair(repairData: any) {
+    async createRepair(repairData: CreateRepairDTO) {
         try {
             const user = await User.findOne({
                 where: {
@@ -55,11 +56,11 @@ export class RepairService {
 
                 return repair;
             }else {
-                throw new Error(`The user [${repairData.userId}] does not exist`);
+                throw CustomError.notFound(`The user [${repairData.userId}] does not exist`);
             }
 
         } catch (error) {
-            throw new Error("Create repair error");
+            throw CustomError.internalServer("Create repair error");
         }
     }
 
@@ -73,10 +74,10 @@ export class RepairService {
 
                 return repair;
             }else {
-                throw new Error(`The repair [${id}] does not exist`);
+                throw CustomError.notFound(`The repair [${id}] does not exist`);
             }
         } catch (error) {
-            throw new Error("Update repair error");
+            throw CustomError.internalServer("Update repair error");
         }
     }
 
@@ -90,10 +91,10 @@ export class RepairService {
 
                 return repair;
             }else {
-                throw new Error(`The repair [${id}] does not exist`);
+                throw CustomError.notFound(`The repair [${id}] does not exist`);
             }
         } catch (error) {
-            throw new Error("Delete repair error");
+            throw CustomError.internalServer("Delete repair error");
         }
     }    
 }

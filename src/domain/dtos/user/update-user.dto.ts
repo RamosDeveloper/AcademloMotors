@@ -17,6 +17,6 @@ export class UpdateUserDTO {
         return [
             undefined,
             new UpdateUserDTO(name, email),
-          ];        
+        ];        
     }
 }
