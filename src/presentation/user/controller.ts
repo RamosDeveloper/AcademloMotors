@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
+import { CreateUserDTO, UpdateUserDTO } from "../../domain";
 
 export class UserController {
     constructor(private readonly _userService: UserService) {}
@@ -33,7 +34,11 @@ export class UserController {
 
     createUser = async (req: Request, res: Response) => {
         try {
-           const createUserResponse = await this._userService.createUser(req.body);
+           const [errorCreateUser, createUserDto] = CreateUserDTO.create(req.body);
+
+           if(errorCreateUser) return res.status(422).json({message : errorCreateUser});
+
+           const createUserResponse = await this._userService.createUser(createUserDto!);
 
            return res.status(201).json(createUserResponse);
         } catch (error) {
@@ -46,8 +51,12 @@ export class UserController {
 
     updateUser = async (req: Request, res: Response) => {
         try {
+            const [errorUpdateUser, updateUserDto] = UpdateUserDTO.create(req.body);
+
+            if(errorUpdateUser) return res.status(422).json({message : errorUpdateUser});
+
             const {id} = req.params;
-            const updateUserResponse = await this._userService.updateUser(id, req.body);
+            const updateUserResponse = await this._userService.updateUser(id, updateUserDto!);
 
             return res.status(200).json(updateUserResponse);
         } catch (error) {

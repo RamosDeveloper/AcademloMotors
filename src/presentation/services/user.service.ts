@@ -1,4 +1,5 @@
 import { User } from "../../data";
+import { CreateUserDTO, UpdateUserDTO } from "../../domain";
 
 export class UserService {
     constructor() {}
@@ -21,7 +22,7 @@ export class UserService {
         }
     }
 
-    async createUser(userData: any) {
+    async createUser(userData: CreateUserDTO) {
         const user = new User();
 
         user.name = userData.name;
@@ -36,7 +37,7 @@ export class UserService {
         }
     }
 
-    async updateUser(id: string, userData: any) {
+    async updateUser(id: string, userData: UpdateUserDTO) {
         const user = await this.findUserById(id);
 
         if(user != null) {
