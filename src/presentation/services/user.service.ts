@@ -32,7 +32,11 @@ export class UserService {
 
         try {
             return await user.save();            
-        } catch (error) {
+        } catch (error: any) {
+            if(error.code === '23505') {
+                throw CustomError.badRequest(`User with email: [${userData.email}] already exists`);
+            }
+
             throw CustomError.internalServer("Create user error");
         }
     }
