@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Repair } from "./repair.model";
+import { encriptAdapter } from "../../../config";
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -32,5 +33,10 @@ export class User extends BaseEntity {
     role: 'client' | 'employee';  
     
     @OneToMany(() => Repair, (repair) => repair.user)
-    repairs: Repair[];    
+    repairs: Repair[];  
+    
+    @BeforeInsert()
+    encryptedPassword() {
+      this.password = encriptAdapter.hash(this.password);
+    }
 }
