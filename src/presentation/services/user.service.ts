@@ -1,8 +1,10 @@
-import { User } from "../../data";
-import { CreateUserDTO, CustomError, UpdateUserDTO } from "../../domain";
+import { encriptAdapter, JwtAdapter, protectAccountOwner } from "../../config";
+import { User, UserRole, UserStatus } from "../../data";
+import { CreateUserDTO, CustomError, LoginUserDTO, UpdateUserDTO } from "../../domain";
+import { EmailService } from "./email.service";
 
 export class UserService {
-    constructor() {}
+    constructor(private readonly _emailService: EmailService) {}
 
     async findAllUsers() {
         try {
@@ -22,16 +24,87 @@ export class UserService {
         }
     }
 
+    async findUserByEmail(email: string) {
+        try {
+            const user = await User.findOne({
+                where: {
+                    email: email,
+                    status: UserStatus.AVAILABLE
+                }
+            });
+
+            if(!user) {
+                throw CustomError.notFound(`User with email: [${email}] does not exists`);
+            }
+
+            return user;
+        } catch (error) {
+            throw CustomError.internalServer("Find user by email error");
+        }
+    }
+
+    async sendEmailValidationLink(email: string) {
+        const mockToken = "ieuehdygdtegeh";
+        const link = `http://localhost:3000/api/v1/users/validate-email/${mockToken}`;
+        const html = `
+            <h1>Validate your email</h1>
+            <p>Click on the following link to validate your email</p>
+            <a href="${link}">Validate your email: ${email}</a>
+        `;
+
+        const isSent = await this._emailService.sendEmail({
+            to: email,
+            subject: 'Validate your email',
+            htmlBody: html
+        });
+
+        if(!isSent) {
+            throw CustomError.internalServer("Error sending validation email link");
+        }
+
+        return true;
+    }
+
+    async loginUser(loginData: LoginUserDTO) {
+        const user = await this.findUserByEmail(loginData.email);
+        const isMatching = encriptAdapter.compare(loginData.password, user.password);
+        if(!isMatching) {
+            throw CustomError.unAuthorized("Invalid Credentials");
+        }
+
+        const token = await JwtAdapter.generateToken({id: user.id});
+        if(!token) {
+            throw CustomError.internalServer("Error while creating JWT");
+        }
+
+        return {
+            token: token,
+            user: {
+                id: user.id,
+                name: user.name,
+                role: user.role                
+            }
+        }
+    }
+
     async createUser(userData: CreateUserDTO) {
         const user = new User();
 
         user.name = userData.name;
         user.email = userData.email;
         user.password = userData.password;
-        user.role = userData.role;
+        user.role = userData.role === UserRole.EMPLOYEE ? UserRole.EMPLOYEE : UserRole.CLIENT;
 
         try {
-            return await user.save();            
+            const dbUser = await user.save();
+
+            await this.sendEmailValidationLink(dbUser.email);
+
+            return {
+                id: dbUser.id,
+                name: dbUser.name,
+                role: dbUser.role
+            }
         } catch (error: any) {
             if(error.code === '23505') {
                 throw CustomError.badRequest(`User with email: [${userData.email}] already exists`);
@@ -41,7 +114,13 @@ export class UserService {
         }
     }
 
-    async updateUser(id: string, userData: UpdateUserDTO) {
+    async updateUser(id: string, userData: UpdateUserDTO, sessionUserId: string) {
+        const isOwner = protectAccountOwner(id, sessionUserId);
+
+        if(!isOwner) {
+            throw CustomError.forbiden("You are not the account owner");
+        }
+
         const user = await this.findUserById(id);
 
         if(user != null) {
@@ -58,12 +137,18 @@ export class UserService {
         }
     }
 
-    async deleteUser(id: string) {
+    async deleteUser(id: string, sessionUserId: string) {
+        const isOwner = protectAccountOwner(id, sessionUserId);
+
+        if(!isOwner) {
+            throw CustomError.forbiden("You are not the account owner");
+        }
+                
         const user = await this.findUserById(id);
 
         if(user != null) {
             try {
-                user.status = "disabled";
+                user.status = UserStatus.DISABLED;
 
                 return await user.save();                
             } catch (error) {

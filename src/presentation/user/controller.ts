@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
-import { CreateUserDTO, UpdateUserDTO, CustomError } from "../../domain";
+import { CreateUserDTO, UpdateUserDTO, CustomError, LoginUserDTO } from "../../domain";
 
 export class UserController {
     constructor(private readonly _userService: UserService) {}
@@ -35,6 +35,20 @@ export class UserController {
         }
     };
 
+    loginUser = async (req: Request, res: Response) => {
+        const [errorLoginUser, loginUserDto] = LoginUserDTO.create(req.body);
+
+        if (errorLoginUser) return res.status(422).json({ message: errorLoginUser });
+        
+        try {
+            const loginData = await this._userService.loginUser(loginUserDto!);
+
+            return res.status(200).json(loginData);
+        } catch (error: unknown) {
+            return this.handleError(error, res);
+        }
+    };
+
     createUser = async (req: Request, res: Response) => {
         try {
            const [errorCreateUser, createUserDto] = CreateUserDTO.create(req.body);
@@ -56,7 +70,8 @@ export class UserController {
             if(errorUpdateUser) return res.status(422).json({message : errorUpdateUser});
 
             const {id} = req.params;
-            const updateUserResponse = await this._userService.updateUser(id, updateUserDto!);
+            const sessionUserId = req.body.sessionUser.id;
+            const updateUserResponse = await this._userService.updateUser(id, updateUserDto!, sessionUserId);
 
             return res.status(200).json(updateUserResponse);
         } catch (error: unknown) {
@@ -67,7 +82,8 @@ export class UserController {
     deleteUser = async (req: Request, res: Response) => {
         try {
             const {id} = req.params;
-            const deleteUserResponse = await this._userService.deleteUser(id);
+            const sessionUserId = req.body.sessionUser.id;
+            const deleteUserResponse = await this._userService.deleteUser(id, sessionUserId);
 
             return res.status(204).json(deleteUserResponse);            
         } catch (error: unknown) {

@@ -1,6 +1,12 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.model";
 
+export enum RepairStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
 @Entity('repairs')
 export class Repair extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
@@ -12,10 +18,16 @@ export class Repair extends BaseEntity {
     @Column({
       type: 'varchar',
       length: 50,
-      default: 'pending',
-      enum: ['pending', 'completed', 'cancelled'],
+      default: RepairStatus.PENDING,
+      enum: [RepairStatus.PENDING, RepairStatus.COMPLETED, RepairStatus.CANCELLED],
     })
-    status: 'pending' | 'completed' | 'cancelled';
+    status: RepairStatus.PENDING | RepairStatus.COMPLETED | RepairStatus.CANCELLED;
+
+    @Column({ type: 'int', nullable: false })
+    motorsNumber: number;
+  
+    @Column({ type: 'varchar', length: 255, nullable: false })
+    description: string;  
 
     @ManyToOne(() => User, (user) => user.repairs, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })

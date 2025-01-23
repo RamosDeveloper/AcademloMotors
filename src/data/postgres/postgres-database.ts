@@ -24,10 +24,7 @@ export class PostgresDatabase {
             database: options.database,
             entities: [User, Repair],
             logging: true,
-            synchronize: true,
- //           ssl: {
- //               rejectUnauthorized: false
- //           }
+            synchronize: true
         });
     }
 

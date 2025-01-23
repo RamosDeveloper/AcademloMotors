@@ -1,4 +1,4 @@
-import { User } from "../../data";
+import { RepairStatus, User } from "../../data";
 import { Repair } from "../../data";
 import { CreateRepairDTO, CustomError } from "../../domain";
 
@@ -9,8 +9,9 @@ export class RepairService {
         try {
             return await Repair.find({
                 where: {
-                    status: 'pending'
-                }
+                    status: RepairStatus.PENDING
+                },
+                relations: ["user"]
             });
         } catch (error) {
             throw CustomError.internalServer("Find all pending motos for repair error");
@@ -19,9 +20,12 @@ export class RepairService {
 
     async findMotoForRepairById(id: string) {
         try {
-            return await Repair.findOne({ where: {
-                id
-            } });
+            return await Repair.findOne({ 
+                where: {
+                    id
+                },
+                relations: ["user"]
+            });
         } catch (error) {
             throw CustomError.internalServer("Find moto for repair by Id error");
         }
@@ -29,14 +33,17 @@ export class RepairService {
 
     async findPendingMotoForRepairById(id: string) {
         try {
-            return await Repair.findOne({ where: {
-                id,
-                status: 'pending'
-            } });
+            return await Repair.findOne({ 
+                where: {
+                    id,
+                    status: RepairStatus.PENDING
+                },
+                relations: ["user"]
+            });
         } catch (error) {
             throw CustomError.internalServer("Find pending moto for repair by Id error");
         }
-    }
+    }    
 
     async createRepair(repairData: CreateRepairDTO) {
         try {
@@ -50,6 +57,8 @@ export class RepairService {
                 const repair = new Repair();
 
                 repair.date = repairData.date;
+                repair.motorsNumber = repairData.motorsNumber;
+                repair.description = repairData.description;
                 repair.user = user;
 
                 await repair.save();
@@ -69,7 +78,7 @@ export class RepairService {
 
         try {
             if(repair != null) {
-                repair.status = 'completed';
+                repair.status = RepairStatus.COMPLETED;
                 repair.save();
 
                 return repair;
@@ -82,11 +91,15 @@ export class RepairService {
     }
 
     async deleteRepair(id: string) {
-        const repair = await this.findPendingMotoForRepairById(id);
+        const repair = await this.findMotoForRepairById(id);
 
         try {
             if(repair != null) {
-                repair.status = 'cancelled';
+                if(repair.status === 'completed') {
+                    throw CustomError.badRequest('Error cannot cancel a complete repair');
+                }
+
+                repair.status = RepairStatus.CANCELLED;
                 repair.save();
 
                 return repair;

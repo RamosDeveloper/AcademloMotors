@@ -2,6 +2,16 @@ import { BaseEntity, BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedCo
 import { Repair } from "./repair.model";
 import { encriptAdapter } from "../../../config";
 
+export enum UserStatus {
+  AVAILABLE = 'available',
+  DISABLED = 'disabled'
+}
+
+export enum UserRole {
+  CLIENT = 'client',
+  EMPLOYEE = 'employee'
+}
+
 @Entity('users')
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
@@ -19,18 +29,18 @@ export class User extends BaseEntity {
     @Column({
       type: 'varchar',
       length: 50,
-      default: 'available',
-      enum: ['available', 'disabled'],
+      default: UserStatus.AVAILABLE,
+      enum: [UserStatus.AVAILABLE, UserStatus.DISABLED],
     })
-    status: 'available' | 'disabled';
+    status: UserStatus.AVAILABLE | UserStatus.DISABLED;
   
     @Column({
       type: 'varchar',
       length: 50,
       nullable: false,
-      enum: ['client', 'employee'],
+      enum: [UserRole.CLIENT, UserRole.EMPLOYEE],
     })
-    role: 'client' | 'employee';  
+    role: UserRole.CLIENT | UserRole.EMPLOYEE;  
     
     @OneToMany(() => Repair, (repair) => repair.user)
     repairs: Repair[];  
